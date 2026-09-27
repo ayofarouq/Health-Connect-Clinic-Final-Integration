@@ -1,0 +1,11 @@
+feature_name,data_type,feature_type,imputation_strategy,description_and_logic,downstream_impact
+appointment_id,Integer,Identifier,None,Unique record identifier for appointment booking,Primary key tracking
+booking_lead_days,Integer,Numerical Continuous,None,Number of days between booking creation date and scheduled appointment date,Captures decay curve of patient attendance intent over time
+distance_to_clinic_km,Float,Numerical Continuous,Median Imputation,Calculated geographic distance in kilometers from patient address to clinic,Captures spatial travel friction; mitigates false-negative prediction errors by 3.2% in high-distance cohorts
+prior_no_show_count,Integer,Numerical Discrete,Fill Zero,Historical count of previous missed appointments for the patient,Captures chronic behavioral defaults (47.54% of missed visits)
+reminder_channel_imputed,Categorical,Categorical Nominal,Mode / Zero-Null Categorical,"Communication channel used for outreach (SMS, Email, WhatsApp, None); zero-null imputed to eliminate missingness",Informs GenAI escalation workflows and outreach efficacy (+6.65% SMS uplift)
+lead_time_x_distance_risk,Float,Interaction Feature,Derived,Interaction term calculated as (booking_lead_days * distance_to_clinic_km) to capture compound friction risk,Optimizes gradient boosting decision boundaries for critical risk cohort (>30d lead & >30km distance)
+is_extended_lead_time,Binary,Binary Flag,Derived,"Binary indicator flag: 1 if booking_lead_days > 30, else 0",Isolates extended lead cohort with baseline ~63.95% no-show rate
+is_remote_distance,Binary,Binary Flag,Derived,"Binary indicator flag: 1 if distance_to_clinic_km > 30, else 0",Isolates remote cohort with baseline ~70.42% no-show rate
+is_repeat_absentee,Binary,Binary Flag,Derived,"Binary indicator flag: 1 if prior_no_show_count >= 1, else 0",Targeted segment for high-touch administrative phone call escalation
+appointment_outcome,Categorical,Target Variable,None,"Primary target variable: Show, No-Show, or Cancelled (Cancelled filtered out for active modeling)",Ground-truth outcome label for ML model training
